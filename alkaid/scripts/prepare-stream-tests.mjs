@@ -1,0 +1,25 @@
+/** 准备多 MiB 文本、二进制夹具及两份当前格式的签名便签包。 */
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
+import { pack } from './ypkg.mjs';
+const root=resolve('build/stream-ui-verification',`run-${Date.now()}`);
+await mkdir(root,{recursive:true});
+const manifest=JSON.parse(await readFile('samples/notes/manifest.json','utf8'));
+const candidate=join(root,'notes-1.1.0.ypkg');
+await pack('samples/notes/manifest.json','build/host/web/samples/notes','build/dev-keys/example.private.pem',candidate);
+const initialManifest=join(root,'initial.json'),initial=join(root,'notes-1.0.0.ypkg');
+await writeFile(initialManifest,JSON.stringify({...manifest,version:'1.0.0'}));
+await pack(initialManifest,'build/host/web/samples/notes','build/dev-keys/example.private.pem',initial);
+const shadowManifest=join(root,'shadow.json'),shadow=join(root,'shadow.ypkg');
+await writeFile(shadowManifest,JSON.stringify({...manifest,appId:'com.example.notes-shadow',name:'便签 · 隔离验证'}));
+await pack(shadowManifest,'build/host/web/samples/notes','build/dev-keys/example.private.pem',shadow);
+const line='2026-11-04 | 大文件分块验证 | 把页面留给前端，把系统能力交给瑶光台。🌿\n';
+const large='多 MiB 文件验证\n'+line.repeat(45000);
+await writeFile(join(root,'large.txt'),large);
+const binary=Buffer.alloc(process.argv.includes('--capacity') ? 32*1024*1024 : 1024*1024+37);
+for(let i=0;i<binary.length;i++)binary[i]=i%256;
+await writeFile(join(root,'binary.dat'),binary);
+await writeFile(join(root,'utf16.txt'),Buffer.concat([Buffer.from([255,254]),Buffer.from('UTF-16 中文与 🌿\r\n第二行','utf16le')]));
+await writeFile(join(root,'output.txt'),'原文件');
+await writeFile('build/stream-ui-verification/fixtures.json',JSON.stringify({root,candidate,shadow,initial,largeBytes:Buffer.byteLength(large),largeCharacters:large.length},null,2));
+console.log(`分块测试夹具已准备：${root}`);

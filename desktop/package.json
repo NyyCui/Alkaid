@@ -1,0 +1,6 @@
+{
+  "name": "@alkaid/desktop",
+  "private": true,
+  "type": "module",
+  "version": "2.0.0-dev.1"
+}

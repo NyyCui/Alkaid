@@ -1,0 +1,24 @@
+/** 请求台的界面和业务状态；网络只调用瑶光台 SDK。 */
+import {AlkaidClient} from '../sdk/index.js';import {createCefTransport} from './bridge.js';
+const client=new AlkaidClient(createCefTransport()),find=id=>document.getElementById(id);let endpoints=[],response=null,busy=false,controller=null,view='body';
+function selectEndpoint(){const e=endpoints.find(x=>x.id===find('endpoint').value);if(!e)return;find('destination').textContent=e.baseUrl;find('boundary').textContent=e.allowPrivateNetwork?'已授权访问内网及本机':'仅访问公网';find('method').replaceChildren(...e.methods.map(method=>{const o=document.createElement('option');o.value=o.textContent=method;return o;}));selectMethod();}
+function selectMethod(){const visible=!['GET','HEAD'].includes(find('method').value);find('body-label').hidden=find('body').hidden=!visible;}
+function update(){for(const id of ['send','endpoint','method','path','body'])find(id).disabled=busy||!endpoints.length;find('cancel').hidden=!busy;find('send').textContent=busy?'请求中…':'发送请求 ↗';for(const button of document.querySelectorAll('[data-path]'))button.disabled=busy;}
+function output(){find('tab-body').setAttribute('aria-pressed',String(view==='body'));find('tab-headers').setAttribute('aria-pressed',String(view==='headers'));if(!response)return;
+ if(view==='headers'){find('output').textContent=Object.entries(response.headers).map(([key,value])=>`${key}: ${value}`).join('\n');return;}
+ if(!response.body.length){find('output').textContent='响应正文为空。';return;}
+ const limit=256*1024;
+ try{let text=new TextDecoder('utf-8',{fatal:true}).decode(response.body.subarray(0,Math.min(limit,response.body.length)));if(response.body.length<=limit){try{text=JSON.stringify(JSON.parse(text),null,2);}catch{}}find('output').textContent=text+(response.body.length>limit?'\n\n…正文预览仅显示前 256 KiB，响应已完整接收。':'');}
+ catch{find('output').textContent=`二进制响应，共 ${response.body.length.toLocaleString()} 字节。\n\n前 256 字节：\n`+Array.from(response.body.subarray(0,256),byte=>byte.toString(16).padStart(2,'0')).join(' ');}}
+find('endpoint').addEventListener('change',selectEndpoint);find('method').addEventListener('change',selectMethod);
+for(const button of document.querySelectorAll('[data-path]'))button.addEventListener('click',()=>{const e=endpoints.find(x=>x.id===find('endpoint').value);if(!e.methods.includes(button.dataset.method))return;find('path').value=button.dataset.path;find('method').value=button.dataset.method;selectMethod();});
+find('tab-body').addEventListener('click',()=>{view='body';output();});find('tab-headers').addEventListener('click',()=>{view='headers';output();});find('clear').addEventListener('click',()=>{if(busy)return;response=null;find('output').textContent='响应会显示在这里。';find('status').textContent='尚未发送';find('status').removeAttribute('data-ok');find('error').hidden=true;find('size').textContent='— 字节';find('duration').textContent='— 毫秒';});
+find('cancel').addEventListener('click',()=>controller?.abort());
+find('send').addEventListener('click',async()=>{if(busy)return;busy=true;controller=new AbortController();update();find('error').hidden=true;find('status').textContent='等待响应';find('status').removeAttribute('data-ok');find('progress').textContent='正在连接服务…';const start=performance.now();response=null;
+ try{const method=find('method').value;response=await client.net.request(find('endpoint').value,find('path').value,{method,body:['GET','HEAD'].includes(method)?undefined:find('body').value,headers:method==='POST'?{'content-type':'application/json'}:{},signal:controller.signal,onProgress:p=>{find('progress').textContent=`已接收 ${p.processedBytes.toLocaleString()} 字节`;}});find('status').textContent=`HTTP ${response.status}`;find('status').dataset.ok=String(response.ok);find('size').textContent=`${response.body.length.toLocaleString()} 字节`;view='body';output();find('progress').textContent=response.ok?'响应接收完成':'服务返回非成功状态，请查看响应正文。';}
+ catch(error){find('error').textContent=`${error.message}（${error.code??'ERROR'}）`;find('error').hidden=false;find('status').textContent=error.code==='ABORTED'?'已取消':'请求未完成';find('status').dataset.ok='false';find('output').textContent='本次没有完整响应。';find('progress').textContent='可以调整请求后再次发送。';}
+ finally{find('duration').textContent=`${Math.round(performance.now()-start).toLocaleString()} 毫秒`;busy=false;controller=null;update();}
+});
+addEventListener('pagehide',()=>{controller?.abort();client.dispose();},{once:true});
+try{const info=await client.runtime.getInfo();endpoints=await client.net.getEndpoints();find('endpoint').replaceChildren(...endpoints.map(e=>{const option=document.createElement('option');option.value=option.textContent=e.id;return option;}));find('runtime').textContent='已连接瑶光台';selectEndpoint();update();document.documentElement.dataset.runtime='connected';if(!endpoints.length){find('error').textContent='当前应用没有已授权的网络端点。';find('error').hidden=false;}}
+catch(error){find('error').textContent=error.message;find('error').hidden=false;find('runtime').textContent='连接失败';}

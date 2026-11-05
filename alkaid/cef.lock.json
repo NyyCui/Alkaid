@@ -1,0 +1,8 @@
+{
+  "version": "156.0.15+gcf671c0+chromium-156.0.8078.80",
+  "platform": "windows64",
+  "archive": "cef_binary_156.0.15+gcf671c0+chromium-156.0.8078.80_windows64_minimal.tar.bz2",
+  "sha1": "b690e035689ee20ba9d2500ac8953815bc7ed46a",
+  "size": 174836914,
+  "source": "https://cef-builds.spotifycdn.com/"
+}

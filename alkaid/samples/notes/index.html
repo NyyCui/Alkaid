@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>笺 · 私有便签</title><link rel="stylesheet" href="notes.css"></head>
+<body>
+  <aside class="sidebar"><div class="brand"><span class="seal">笺</span><div><strong>私有便签</strong><span class="eyebrow">留一点空间，给想法。</span></div></div>
+    <div class="actions"><button id="new" disabled>＋ 新建便签</button><button id="open" disabled>打开文本文件 <span>↗</span></button></div>
+    <div class="current"><span class="eyebrow">正在书写</span><strong id="document-name">未命名便签</strong><p id="draft-state" role="status">正在读取私有草稿…</p></div>
+    <div class="sidebar-bottom"><p>草稿留在应用内。<br>需要分享时，再保存为文件。</p><span class="signature">瑶光台 · 便签示例</span></div>
+  </aside>
+  <main><header><div><span class="eyebrow">你的书写空间</span><h1 id="heading">未命名便签</h1></div><div class="toolbar"><label for="encoding">编码</label><select id="encoding" disabled><option value="auto">自动识别</option><option value="utf-8">UTF-8</option><option value="utf-8-bom">UTF-8 BOM</option><option value="utf-16le">UTF-16 LE</option><option value="utf-16be">UTF-16 BE</option><option value="gb18030">GB18030</option></select><label for="font-size">字号</label><select id="font-size" disabled><option value="16">小</option><option value="19" selected>中</option><option value="23">大</option></select><button id="save-as" disabled>另存为</button><button id="save" class="primary" disabled>保存到文件</button></div></header>
+    <div id="error" class="error" role="alert" hidden></div>
+    <div id="transfer" class="transfer" hidden><span id="transfer-label" role="status"></span><progress id="transfer-progress" max="1" value="0"></progress><button id="cancel-transfer">取消操作</button></div>
+    <section class="paper" aria-label="便签编辑区"><div class="paper-top"><span id="file-state">私有草稿</span><span id="encoding-label">TEXT / UTF-8</span></div><textarea id="editor" aria-label="便签正文" spellcheck="false" disabled placeholder="从这里写下第一行…"></textarea><footer><span id="count">0 字 · 0 B</span><span id="save-state" role="status">连接瑶光台中</span></footer></section>
+    <p class="hint">便签支持 8 MiB 以内的文本，自动识别 Unicode BOM，也可手动选择 GB18030。文件按块读写，草稿仅供本应用使用。</p>
+  </main>
+  <dialog id="replace-dialog" aria-labelledby="replace-title"><span class="eyebrow">切换便签</span><h2 id="replace-title">保留当前内容？</h2><p>新建或打开其他文件会替换这份私有草稿。可以先保存到文件，再继续。</p><div class="dialog-actions"><button id="replace-cancel">返回编辑</button><button id="replace-confirm" class="primary">替换草稿</button></div></dialog>
+  <dialog id="close-dialog" aria-labelledby="close-title"><span class="eyebrow">离开前，安放好想法</span><h2 id="close-title">保存这份便签？</h2><p id="close-description">内容尚未保存到文件。你也可以保留私有草稿，下次继续书写。</p><p id="close-error" class="error" role="alert" hidden></p><div class="close-actions"><button id="close-save" class="primary">保存到文件并关闭</button><button id="close-draft">保留草稿并关闭</button><button id="close-cancel">返回编辑</button></div></dialog>
+  <script type="module" src="src/main.js"></script>
+</body></html>

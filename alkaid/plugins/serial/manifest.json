@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 3,
+  "type": "plugin",
+  "pluginId": "com.alkaid.serial",
+  "name": "串口",
+  "version": "1.0.0",
+  "publisher": { "name": "瑶光台" },
+  "protocolMajor": 1,
+  "architecture": "win-x64",
+  "entry": "worker.exe",
+  "capabilities": ["list", "open", "read", "write", "close"],
+  "events": ["disconnected"]
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>接点 · 设备控制</title>
+  <link rel="stylesheet" href="serial.css">
+</head>
+<body>
+  <header class="mast">
+    <div class="identity"><span class="mark" aria-hidden="true">◎</span><div><strong>接点</strong><span>瑶光台 / 设备控制</span></div></div>
+    <p id="connection" class="signal" data-state="off" role="status">正在连接宿主</p>
+  </header>
+  <main>
+    <section class="panel connection" aria-labelledby="port-title">
+      <span class="index">01 / LINK</span>
+      <h1 id="port-title">串口连接</h1>
+      <div class="fields">
+        <label>端口<input id="port" list="ports" placeholder="COM3" autocomplete="off" spellcheck="false" maxlength="7" disabled><datalist id="ports"></datalist></label>
+        <label>波特率<select id="baud" disabled><option>9600</option><option>19200</option><option>38400</option><option>57600</option><option selected>115200</option></select></label>
+      </div>
+      <p id="available" class="hint">正在读取 Windows 端口列表。</p>
+      <div class="actions"><button id="refresh" disabled>刷新端口</button><button id="open" class="primary" disabled>打开串口</button><button id="close" disabled>关闭串口</button></div>
+      <p id="error" class="error" role="alert" hidden></p>
+    </section>
+    <section class="panel transmit" aria-labelledby="tx-title">
+      <span class="index">02 / TX</span><h2 id="tx-title">发送</h2>
+      <label class="sr-only" for="payload">发送内容</label>
+      <textarea id="payload" rows="5" placeholder="输入 UTF-8 文本…" disabled></textarea>
+      <div class="actions"><span class="hint">UTF-8 · 单次最多 4096 字节</span><button id="send" class="primary" disabled>发送</button></div>
+    </section>
+    <section class="panel receive" aria-labelledby="rx-title">
+      <div class="receive-head"><div><span class="index">03 / RX</span><h2 id="rx-title">接收</h2></div><button id="read" disabled>读取一次</button></div>
+      <pre id="bytes" tabindex="0">连接串口后可读取字节。此处以十六进制显示。</pre>
+    </section>
+  </main>
+  <footer><span>8N1 / 独占连接 / 无流控</span><span id="notice" role="status">等待串口插件</span></footer>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

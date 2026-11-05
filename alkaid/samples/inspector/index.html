@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>能力查看器</title><link rel="stylesheet" href="./1.css"><link rel="stylesheet" href="./runtime.css"><script type="module" src="./src/main.js"></script></head>
+<body>
+  <main>
+    <header><span class="mark" aria-hidden="true">◈</span><span class="edition">瑶光台 · 示例应用</span><span id="status" role="status">正在连接</span></header>
+    <section class="intro"><p class="eyebrow">应用与平台之间</p><h1>看见应用的<br><em>能力边界。</em></h1><p class="description">这个独立应用通过瑶光台 SDK 查询自己的身份和已获准的能力。每一次刷新，结果都来自正在运行的宿主。</p></section>
+    <section class="details" aria-label="当前应用"><dl><dt>应用身份</dt><dd id="identity">—</dd><dt>平台版本</dt><dd id="version">—</dd><dt>运行角色</dt><dd>普通应用</dd></dl><div class="capabilities"><h2>可用能力 <span id="count">—</span></h2><ul id="methods"></ul></div></section>
+    <footer><p>窗口可以独立关闭，桌面仍会继续运行。</p><button id="refresh">刷新信息 <span aria-hidden="true">↗</span></button></footer>
+    <p id="error" role="alert" hidden></p>
+  </main>
+</body>
+</html>

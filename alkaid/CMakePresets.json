@@ -1,0 +1,50 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "Core",
+      "displayName": "独立运行核心与测试（不下载 CEF）",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/core",
+      "cacheVariables": {
+        "ALKAID_BUILD_LEGACY_HOST": "OFF",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "Default",
+      "displayName": "Default",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "USE_SANDBOX": "OFF",
+        "CEF_RUNTIME_LIBRARY_FLAG": "/MD",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    },
+    {
+      "name": "Debug",
+      "displayName": "Debug",
+      "inherits": [
+        "Default"
+      ],
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Release",
+      "displayName": "Release",
+      "inherits": [
+        "Default"
+      ],
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ]
+}

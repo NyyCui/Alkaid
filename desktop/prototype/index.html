@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>应用平台桌面 - 原型图</title>
+    <!-- 切换此处link切换四套样式 -->
+    <link href="./1.css" rel="stylesheet">
+</head>
+<body>
+<!-- ==================== 壁纸 ==================== -->
+<div class="wallpaper"></div>
+<!-- ==================== 顶部菜单栏 ==================== -->
+<div class="menubar" id="menubar">
+    <div class="menubar-left">
+        <div class="menubar-logo" title="应用平台">◆</div>
+        <span class="menubar-item" data-menu="file">文件</span>
+        <span class="menubar-item" data-menu="edit">编辑</span>
+        <span class="menubar-item" data-menu="view">查看</span>
+        <span class="menubar-item" data-menu="window">窗口</span>
+        <span class="menubar-item" data-menu="help">帮助</span>
+    </div>
+    <div class="menubar-right">
+        <span class="menubar-status-icon" title="网络">📶</span>
+        <span class="menubar-status-icon" title="音量">🔊</span>
+        <span class="menubar-status-icon" title="电池">🔋</span>
+        <span class="menubar-time" id="menubar-time">7月29日 周二 14:30</span>
+    </div>
+</div>
+<!-- ==================== 桌面区域 ==================== -->
+<div class="desktop" id="desktop">
+    <!-- 桌面图标由JS动态生成 -->
+</div>
+<!-- ==================== 底部Dock ==================== -->
+<div class="dock-container" id="dock">
+    <!-- Dock图标由JS动态生成 -->
+</div>
+<!-- ==================== 右键菜单 ==================== -->
+<div class="context-menu" id="context-menu">
+    <div class="context-menu-item" data-action="refresh">🔄 刷新桌面</div>
+    <div class="context-menu-separator"></div>
+    <div class="context-menu-item" data-action="new-folder">📁 新建文件夹</div>
+    <div class="context-menu-item" data-action="new-file">📄 新建文件</div>
+    <div class="context-menu-separator"></div>
+    <div class="context-menu-item" data-action="change-wallpaper">🖼️ 更换壁纸</div>
+</div>
+<!-- ==================== 窗口容器（由JS动态创建和管理） ==================== -->
+<div id="windows-container"></div>
+<!-- ==================== Toast通知容器 ==================== -->
+<div id="toast-container"></div>
+<!-- ==================== 隐藏的文件选择器（用于模拟安装ZIP） ==================== -->
+<input accept=".zip" id="hidden-file-input" style="display:none;" type="file">
+<script>
+  (function () {
+    // ==================== 数据模型 ====================
+    // 已安装应用列表
+    const installedApps = [
+      {
+        id: 'app-manager', name: '应用管理', emoji: '📦', version: '1.2.0', size: '24.5 MB',
+        installDate: '2026-06-15', isSystem: true, category: 'system'
+      },
+      {
+        id: 'file-explorer', name: '文件管理器', emoji: '📁', version: '2.1.3', size: '18.2 MB',
+        installDate: '2026-06-15', isSystem: true, category: 'system'
+      },
+      {
+        id: 'notepad', name: '记事本', emoji: '📝', version: '3.0.1', size: '8.7 MB', installDate: '2026-07-02',
+        isSystem: false, category: 'productivity'
+      },
+      {
+        id: 'calculator', name: '计算器', emoji: '🔢', version: '1.5.0', size: '12.1 MB', installDate: '2026-07-10',
+        isSystem: false, category: 'utility'
+      },
+      {
+        id: 'music-player', name: '音乐播放器', emoji: '🎵', version: '4.2.0', size: '35.8 MB',
+        installDate: '2026-07-20', isSystem: false, category: 'entertainment'
+      },
+      {
+        id: 'chart-app', name: '图表工具', emoji: '📊', version: '2.0.4', size: '28.3 MB',
+        installDate: '2026-07-25', isSystem: false, category: 'productivity'
+      },
+    ];
+    // 窗口状态管理
+    const windowStates = {};
+    let globalZIndex = 100;
+    let activeWindowId = null;
+    // 运行中的应用ID集合
+    const runningAppIds = new Set();
+    // ==================== DOM引用 ====================
+    const desktopEl = document.getElementById('desktop');
+    const dockEl = document.getElementById('dock');
+    const windowsContainer = document.getElementById('windows-container');
+    const contextMenuEl = document.getElementById('context-menu');
+    const toastContainer = document.getElementById('toast-container');
+    const hiddenFileInput = document.getElementById('hidden-file-input');
+    const menubarTimeEl = document.getElementById('menubar-time');
+
+    // ==================== 工具函数 ====================
+    function updateTime() {
+      const now = new Date();
+      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+      const month = now.getMonth() + 1;
+      const day = now.getDate();
+      const weekday = weekdays[now.getDay()];
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      menubarTimeEl.textContent = `${month}月${day}日 ${weekday} ${hours}:${minutes}`;
+    }
+
+    updateTime();
+    setInterval(updateTime, 30000);
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 2600);
+    }
+
+    function getAppById(id) {
+      return installedApps.find(app => app.id === id);
+    }
+
+    // ==================== 桌面图标渲染 ====================
+    function renderDesktopIcons() {
+      // 清除现有图标
+      const existingIcons = desktopEl.querySelectorAll('.desktop-icon');
+      existingIcons.forEach(el => el.remove());
+      // 为每个已安装应用创建桌面快捷方式
+      installedApps.forEach((app, index) => {
+        const iconEl = document.createElement('div');
+        iconEl.className = 'desktop-icon';
+        iconEl.dataset.appId = app.id;
+        iconEl.id = app.id;
+        iconEl.style.order = index;
+        iconEl.innerHTML = `
+                            <div class="desktop-icon-emoji">${app.emoji}</div>
+                            <span class="desktop-icon-label">${app.name}</span>
+                        `;
+        iconEl.addEventListener('dblclick', (e) => {
+          e.stopPropagation();
+          openAppWindow(app.id);
+        });
+        iconEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // 选中效果
+          desktopEl.querySelectorAll('.desktop-icon.selected').forEach(el => el
+              .classList.remove('selected'));
+          iconEl.classList.add('selected');
+        });
+        desktopEl.appendChild(iconEl);
+      });
+    }
+
+    // ==================== Dock渲染 ====================
+    function renderDock() {
+      dockEl.innerHTML = '';
+      // 系统应用放前面
+      const dockApps = installedApps.filter(a => a.isSystem || a.category === 'productivity').slice(0, 6);
+      // 确保应用管理和文件管理器在dock中
+      const sysAppIds = ['app-manager', 'file-explorer'];
+      const existingIds = new Set(dockApps.map(a => a.id));
+      sysAppIds.forEach(id => {
+        if (!existingIds.has(id)) {
+          const app = getAppById(id);
+          if (app) dockApps.unshift(app);
+        }
+      });
+      dockApps.forEach((app, idx) => {
+        const item = document.createElement('div');
+        item.className = 'dock-item';
+        if (runningAppIds.has(app.id)) {
+          item.classList.add('running');
+        }
+        item.title = app.name;
+        item.textContent = app.emoji;
+        item.addEventListener('click', () => {
+          openAppWindow(app.id);
+        });
+        dockEl.appendChild(item);
+        // 在系统应用后添加分隔符
+        if (idx === 1 && dockApps.length > 2) {
+          const sep = document.createElement('div');
+          sep.className = 'dock-separator';
+          dockEl.appendChild(sep);
+        }
+      });
+    }
+
+    function updateDockRunningIndicators() {
+      const items = dockEl.querySelectorAll('.dock-item');
+      items.forEach(item => {
+        const appId = getDockItemAppId(item);
+        if (appId && runningAppIds.has(appId)) {
+          item.classList.add('running');
+        } else if (appId) {
+          item.classList.remove('running');
+        }
+      });
+    }
+
+    function getDockItemAppId(dockItem) {
+      const emoji = dockItem.textContent.trim();
+      const app = installedApps.find(a => a.emoji === emoji);
+      return app ? app.id : null;
+    }
+
+    // ==================== 窗口管理 ====================
+    function createWindowElement(appId) {
+      const app = getAppById(appId);
+      if (!app) return null;
+      const existingWindow = document.getElementById(`window-${appId}`);
+      if (existingWindow) {
+        // 窗口已存在，聚焦并恢复
+        focusWindow(appId);
+        if (existingWindow.classList.contains('hidden')) {
+          existingWindow.classList.remove('hidden');
+          existingWindow.classList.remove('minimizing');
+          runningAppIds.add(appId);
+          updateDockRunningIndicators();
+        }
+        if (existingWindow.classList.contains('maximized')) {
+          // 如果已最大化，保持最大化状态但聚焦
+        }
+        return existingWindow;
+      }
+      const winEl = document.createElement('div');
+      winEl.className = 'window focused';
+      winEl.id = `window-${appId}`;
+      winEl.dataset.appId = appId;
+      globalZIndex++;
+      winEl.style.zIndex = globalZIndex;
+      activeWindowId = appId;
+      // 默认窗口尺寸和位置
+      const desktopWidth = window.innerWidth;
+      const desktopHeight = window.innerHeight - 32 - 62;
+      let winWidth, winHeight, winLeft, winTop;
+      if (appId === 'app-manager') {
+        winWidth = Math.min(680, desktopWidth * 0.7);
+        winHeight = Math.min(520, desktopHeight * 0.75);
+        winLeft = (desktopWidth - winWidth) / 2 - 80;
+        winTop = 50 + Math.random() * 40;
+      } else if (appId === 'file-explorer') {
+        winWidth = Math.min(750, desktopWidth * 0.75);
+        winHeight = Math.min(550, desktopHeight * 0.8);
+        winLeft = (desktopWidth - winWidth) / 2 + 60;
+        winTop = 70 + Math.random() * 40;
+      } else {
+        winWidth = Math.min(550, desktopWidth * 0.55);
+        winHeight = Math.min(420, desktopHeight * 0.6);
+        winLeft = 100 + Math.random() * (desktopWidth - winWidth - 200);
+        winTop = 60 + Math.random() * (desktopHeight - winHeight - 100);
+      }
+      winEl.style.width = winWidth + 'px';
+      winEl.style.height = winHeight + 'px';
+      winEl.style.left = Math.max(20, winLeft) + 'px';
+      winEl.style.top = Math.max(36, winTop) + 'px';
+      // 保存窗口状态
+      windowStates[appId] = {
+        width: winWidth,
+        height: winHeight,
+        left: Math.max(20, winLeft),
+        top: Math.max(36, winTop),
+        isMaximized: false,
+        isMinimized: false,
+      };
+      // 构建窗口HTML
+      winEl.innerHTML = buildWindowContent(appId, app);
+      // 添加到容器
+      windowsContainer.appendChild(winEl);
+      // 绑定事件
+      bindWindowEvents(winEl, appId);
+      // 标记为运行中
+      runningAppIds.add(appId);
+      updateDockRunningIndicators();
+      renderDock();
+      return winEl;
+    }
+
+    function buildWindowContent(appId, app) {
+      let contentHTML = '';
+      if (appId === 'app-manager') {
+        contentHTML = buildAppManagerContent();
+      } else if (appId === 'file-explorer') {
+        contentHTML = buildFileExplorerContent();
+      } else {
+        contentHTML = buildGenericAppContent(app);
+      }
+      return `
+                        <div class="window-titlebar" data-window-id="${appId}">
+                            <div class="window-titlebar-buttons">
+                                <button class="window-btn window-btn-close" data-action="close" title="关闭"></button>
+                                <button class="window-btn window-btn-minimize" data-action="minimize" title="最小化"></button>
+                                <button class="window-btn window-btn-maximize" data-action="maximize" title="最大化"></button>
+                            </div>
+                            <span class="window-title">${app.name}</span>
+                        </div>
+                        <div class="window-content">${contentHTML}</div>
+                    `;
+    }
+
+    function buildAppManagerContent() {
+      let rowsHTML = installedApps.map(app => `
+                        <tr data-app-id="${app.id}">
+                            <td>
+                                <div class="app-icon-cell">
+                                    <div class="app-icon-small">${app.emoji}</div>
+                                    <span class="app-name-strong">${app.name}</span>
+                                    ${app.isSystem ? '<span class="badge-system">系统</span>' : ''}
+                                </div>
+                            </td>
+                            <td class="app-version">${app.version}</td>
+                            <td>${app.size}</td>
+                            <td>${app.installDate}</td>
+                            <td>
+                                ${app.isSystem ? '<span style="color:#888;font-size:11px;">系统应用</span>' : `<button class="btn btn-danger btn-uninstall" data-app-id="${app.id}">卸载</button>`}
+                            </td>
+                        </tr>
+                    `).join('');
+      return `
+                        <div class="app-manager-toolbar">
+                            <button class="btn btn-primary" id="btn-install-app">📥 安装应用 (ZIP)</button>
+                            <span style="font-size:11px;color:#999;margin-left:4px;">支持拖拽ZIP文件到此处</span>
+                        </div>
+                        <div class="app-list">
+                            <table class="app-list-table">
+                                <thead>
+                                    <tr>
+                                        <th>应用名称</th>
+                                        <th>版本</th>
+                                        <th>大小</th>
+                                        <th>安装日期</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rowsHTML}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+    }
+
+    function buildFileExplorerContent() {
+      const folders = [
+        {name: '文档', icon: '📂', type: 'folder', date: '2026-07-28', size: '--'},
+        {name: '图片', icon: '🖼️', type: 'folder', date: '2026-07-25', size: '--'},
+        {name: '下载', icon: '📥', type: 'folder', date: '2026-07-29', size: '--'},
+        {name: '音乐', icon: '🎶', type: 'folder', date: '2026-07-20', size: '--'},
+        {name: '项目源码', icon: '💻', type: 'folder', date: '2026-07-27', size: '--'},
+      ];
+      const files = [
+        {name: 'README.md', icon: '📄', type: 'file', date: '2026-07-28', size: '3.2 KB'},
+        {name: '项目报告.pdf', icon: '📕', type: 'file', date: '2026-07-26', size: '1.8 MB'},
+        {name: '预算表.xlsx', icon: '📊', type: 'file', date: '2026-07-22', size: '256 KB'},
+        {name: 'config.json', icon: '⚙️', type: 'file', date: '2026-07-29', size: '1.1 KB'},
+        {name: 'logo.svg', icon: '🎨', type: 'file', date: '2026-07-18', size: '48 KB'},
+      ];
+      let folderRows = folders.map(f => `
+                        <tr>
+                            <td><div class="file-name-cell"><span class="file-icon-folder">${f.icon}</span>${f.name}</div></td>
+                            <td>${f.date}</td>
+                            <td>文件夹</td>
+                            <td>${f.size}</td>
+                        </tr>
+                    `).join('');
+      let fileRows = files.map(f => `
+                        <tr>
+                            <td><div class="file-name-cell"><span class="file-icon-doc">${f.icon}</span>${f.name}</div></td>
+                            <td>${f.date}</td>
+                            <td>${f.name.split('.').pop().toUpperCase()} 文件</td>
+                            <td>${f.size}</td>
+                        </tr>
+                    `).join('');
+      return `
+                        <div class="file-manager-layout">
+                            <div class="file-sidebar">
+                                <div class="file-sidebar-section">快速访问</div>
+                                <div class="file-sidebar-item active">🏠 桌面</div>
+                                <div class="file-sidebar-item">📂 文档</div>
+                                <div class="file-sidebar-item">📥 下载</div>
+                                <div class="file-sidebar-item">🖼️ 图片</div>
+                                <div class="file-sidebar-section">此电脑</div>
+                                <div class="file-sidebar-item">💾 本地磁盘 (C:)</div>
+                                <div class="file-sidebar-item">💾 数据盘 (D:)</div>
+                            </div>
+                            <div class="file-main">
+                                <div class="file-address-bar">
+                                    <span>📁</span>
+                                    <input class="file-address-input" value="C:\\Users\\Developer\\Desktop" readonly>
+                                </div>
+                                <div class="file-list">
+                                    <table class="file-list-table">
+                                        <thead>
+                                            <tr>
+                                                <th>名称</th>
+                                                <th>修改日期</th>
+                                                <th>类型</th>
+                                                <th>大小</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${folderRows}
+                                            ${fileRows}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+    }
+
+    function buildGenericAppContent(app) {
+      const contents = {
+        'notepad': {
+          title: '无标题 - 记事本',
+          content: '<div style="padding:20px;font-family:monospace;font-size:14px;color:#d0d0d8;line-height:1.7;">欢迎使用记事本。<br><br>这是一个轻量级文本编辑器。<br>您可以在此编写和编辑文本内容。<br><br>---<br><br>平台提供JS、HTML、CSS的运行环境，<br>开发人员使用VUE等技术开发页面，<br>将代码打包成ZIP即可注册安装。</div>'
+        },
+        'calculator': {
+          title: '计算器',
+          content: `
+                                <div style="padding:16px;display:flex;flex-direction:column;gap:8px;align-items:center;">
+                                    <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:16px 20px;width:100%;text-align:right;font-size:28px;font-weight:300;color:#fff;letter-spacing:0.02em;">1,024</div>
+                                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;">
+                                        ${['C', '±', '%', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', '.', '⌫', '='].map(btn => `
+                                            <div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:14px;text-align:center;cursor:pointer;font-size:15px;font-weight:500;transition:all 0.12s;color:#e8e8f0;"
+                                                 onmouseover="this.style.background='rgba(255,255,255,0.14)'"
+                                                 onmouseout="this.style.background='rgba(255,255,255,0.06)'">${btn}</div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `
+        },
+        'music-player': {
+          title: '音乐播放器',
+          content: `
+                                <div style="padding:20px;text-align:center;">
+                                    <div style="font-size:60px;margin:20px 0;">🎵</div>
+                                    <div style="font-weight:600;font-size:15px;color:#f0f0f6;">正在播放：星空下的梦想</div>
+                                    <div style="color:#999;font-size:12px;margin:4px 0;">艺术家：音乐工作室</div>
+                                    <div style="background:rgba(255,255,255,0.08);border-radius:8px;height:5px;margin:20px 30px;overflow:hidden;">
+                                        <div style="height:100%;width:45%;border-radius:8px;"></div>
+                                    </div>
+                                    <div style="display:flex;justify-content:center;gap:20px;font-size:28px;cursor:pointer;">⏮️ ⏯️ ⏭️</div>
+                                </div>
+                            `
+        },
+        'chart-app': {
+          title: '图表工具',
+          content: `
+                                <div style="padding:20px;text-align:center;">
+                                    <div style="font-size:50px;margin:10px 0;">📊</div>
+                                    <div style="font-weight:600;font-size:14px;color:#f0f0f6;">数据可视化面板</div>
+                                    <div style="display:flex;justify-content:center;gap:12px;margin:20px 0;flex-wrap:wrap;">
+                                        <div style="background:rgba(100,140,255,0.25);border-radius:10px;padding:18px 22px;min-width:80px;">
+                                            <div style="font-size:24px;font-weight:700;color:#fff;">128</div>
+                                            <div style="font-size:10px;color:#aac;">数据点</div>
+                                        </div>
+                                        <div style="background:rgba(255,140,100,0.25);border-radius:10px;padding:18px 22px;min-width:80px;">
+                                            <div style="font-size:24px;font-weight:700;color:#fff;">+24%</div>
+                                            <div style="font-size:10px;color:#caa;">增长率</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `
+        },
+      };
+      const c = contents[appId] || {
+        title: app.name,
+        content: `<div style="padding:30px;text-align:center;font-size:40px;">${app.emoji}</div><div style="text-align:center;color:#999;">${app.name} 正在运行中...</div>`
+      };
+      return c.content;
+    }
+
+    function bindWindowEvents(winEl, appId) {
+      // 点击窗口聚焦
+      winEl.addEventListener('mousedown', (e) => {
+        focusWindow(appId);
+      });
+      // 标题栏按钮事件
+      const titlebar = winEl.querySelector('.window-titlebar');
+      titlebar.addEventListener('click', (e) => {
+        const btn = e.target.closest('.window-btn');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        if (action === 'close') {
+          closeWindow(appId);
+        } else if (action === 'minimize') {
+          minimizeWindow(appId);
+        } else if (action === 'maximize') {
+          toggleMaximizeWindow(appId);
+        }
+      });
+      // 拖拽窗口
+      let isDragging = false;
+      let dragStartX, dragStartY;
+      let winStartLeft, winStartTop;
+      let wasMaximized = false;
+      titlebar.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.window-btn')) return; // 不拖拽按钮
+        if (winEl.classList.contains('maximized')) {
+          wasMaximized = true;
+          restoreWindow(appId);
+          // 调整起始位置
+          const rect = winEl.getBoundingClientRect();
+          winStartLeft = rect.left;
+          winStartTop = rect.top;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+        } else {
+          wasMaximized = false;
+          winStartLeft = parseInt(winEl.style.left) || 0;
+          winStartTop = parseInt(winEl.style.top) || 0;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+        }
+        isDragging = true;
+        winEl.style.transition = 'none';
+        document.body.style.cursor = 'grabbing';
+      });
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        let newLeft = winStartLeft + dx;
+        let newTop = winStartTop + dy;
+        // 约束在桌面区域内
+        newTop = Math.max(32, newTop);
+        newLeft = Math.max(-100, Math.min(window.innerWidth - 100, newLeft));
+        winEl.style.left = newLeft + 'px';
+        winEl.style.top = newTop + 'px';
+        windowStates[appId].left = newLeft;
+        windowStates[appId].top = newTop;
+      });
+      document.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          winEl.style.transition = '';
+          document.body.style.cursor = '';
+        }
+      });
+      // 应用管理窗口内的按钮事件
+      if (appId === 'app-manager') {
+        setTimeout(() => {
+          const installBtn = winEl.querySelector('#btn-install-app');
+          if (installBtn) {
+            installBtn.addEventListener('click', () => simulateInstallApp());
+          }
+          const uninstallBtns = winEl.querySelectorAll('.btn-uninstall');
+          uninstallBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const targetAppId = btn.dataset.appId;
+              uninstallApp(targetAppId);
+            });
+          });
+        }, 100);
+      }
+      // 文件管理器侧边栏事件
+      if (appId === 'file-explorer') {
+        setTimeout(() => {
+          const sidebarItems = winEl.querySelectorAll('.file-sidebar-item');
+          sidebarItems.forEach(item => {
+            item.addEventListener('click', () => {
+              sidebarItems.forEach(s => s.classList.remove('active'));
+              item.classList.add('active');
+              const addrInput = winEl.querySelector('.file-address-input');
+              if (addrInput) {
+                const pathMap = {
+                  '桌面': 'C:\\Users\\Developer\\Desktop',
+                  '文档': 'C:\\Users\\Developer\\Documents',
+                  '下载': 'C:\\Users\\Developer\\Downloads',
+                  '图片': 'C:\\Users\\Developer\\Pictures',
+                  '本地磁盘 (C:)': 'C:\\',
+                  '数据盘 (D:)': 'D:\\',
+                };
+                const key = item.textContent.trim().replace(/^[^\s]+\s/, '');
+                const matchedKey = Object.keys(pathMap).find(k => item.textContent
+                    .includes(k));
+                if (matchedKey) {
+                  addrInput.value = pathMap[matchedKey];
+                }
+              }
+            });
+          });
+        }, 100);
+      }
+    }
+
+    function focusWindow(appId) {
+      const winEl = document.getElementById(`window-${appId}`);
+      if (!winEl || winEl.classList.contains('hidden')) return;
+      globalZIndex++;
+      winEl.style.zIndex = globalZIndex;
+      winEl.classList.add('focused');
+      activeWindowId = appId;
+      // 取消其他窗口的聚焦状态
+      document.querySelectorAll('.window.focused').forEach(w => {
+        if (w.id !== `window-${appId}`) w.classList.remove('focused');
+      });
+    }
+
+    function openAppWindow(appId) {
+      const winEl = document.getElementById(`window-${appId}`);
+      if (winEl && !winEl.classList.contains('hidden')) {
+        // 窗口已打开且未隐藏，聚焦并恢复
+        focusWindow(appId);
+        if (winEl.classList.contains('minimizing')) {
+          winEl.classList.remove('minimizing');
+        }
+        if (windowStates[appId] && windowStates[appId].isMinimized) {
+          windowStates[appId].isMinimized = false;
+          runningAppIds.add(appId);
+          updateDockRunningIndicators();
+        }
+        return;
+      }
+      if (winEl && winEl.classList.contains('hidden')) {
+        // 恢复隐藏的窗口
+        winEl.classList.remove('hidden');
+        winEl.classList.remove('minimizing');
+        focusWindow(appId);
+        windowStates[appId].isMinimized = false;
+        runningAppIds.add(appId);
+        updateDockRunningIndicators();
+        renderDock();
+        return;
+      }
+      // 创建新窗口
+      createWindowElement(appId);
+      runningAppIds.add(appId);
+      updateDockRunningIndicators();
+      renderDock();
+    }
+
+    function closeWindow(appId) {
+      const winEl = document.getElementById(`window-${appId}`);
+      if (!winEl) return;
+      winEl.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+      winEl.style.opacity = '0';
+      winEl.style.transform = 'scale(0.9)';
+      setTimeout(() => {
+        if (winEl.parentNode) winEl.parentNode.removeChild(winEl);
+      }, 200);
+      delete windowStates[appId];
+      runningAppIds.delete(appId);
+      updateDockRunningIndicators();
+      renderDock();
+      if (activeWindowId === appId) activeWindowId = null;
+    }
+
+    function minimizeWindow(appId) {
+      const winEl = document.getElementById(`window-${appId}`);
+      if (!winEl || winEl.classList.contains('hidden')) return;
+      winEl.classList.add('minimizing');
+      windowStates[appId].isMinimized = true;
+      setTimeout(() => {
+        winEl.classList.add('hidden');
+        winEl.classList.remove('minimizing');
+        winEl.classList.remove('focused');
+        runningAppIds.delete(appId);
+        updateDockRunningIndicators();
+        if (activeWindowId === appId) activeWindowId = null;
+      }, 340);
+    }
+
+    function toggleMaximizeWindow(appId) {
+      const winEl = document.getElementById(`window-${appId}`);
+      if (!winEl || winEl.classList.contains('hidden')) return;
+      if (winEl.classList.contains('maximized')) {
+        restoreWindow(appId);
+      } else {
+        maximizeWindow(appId);
+      }
+    }
+
+    function maximizeWindow(appId) {
+      const winEl = document.getElementById(`window-${appId}`);
+      if (!winEl) return;
+      const state = windowStates[appId];
+      if (!state) return;
+      // 保存当前状态
+      state.width = parseInt(winEl.style.width);
+      state.height = parseInt(winEl.style.height);
+      state.left = parseInt(winEl.style.left);
+      state.top = parseInt(winEl.style.top);
+      state.isMaximized = true;
+      winEl.classList.add('maximized');
+      focusWindow(appId);
+    }
+
+    function restoreWindow(appId) {
+      const winEl = document.getElementById(`window-${appId}`);
+      if (!winEl) return;
+      const state = windowStates[appId];
+      if (!state || !state.isMaximized) return;
+      winEl.classList.remove('maximized');
+      winEl.style.width = state.width + 'px';
+      winEl.style.height = state.height + 'px';
+      winEl.style.left = state.left + 'px';
+      winEl.style.top = state.top + 'px';
+      state.isMaximized = false;
+      focusWindow(appId);
+    }
+
+    // ==================== 应用安装/卸载 ====================
+    function simulateInstallApp() {
+      // 创建模拟安装对话框
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+                        <div class="modal-dialog">
+                            <h3>📥 安装新应用</h3>
+                            <p style="font-size:12px;color:#999;margin-bottom:12px;">选择ZIP文件或输入应用信息进行模拟安装</p>
+                            <input type="text" id="modal-app-name" placeholder="应用名称" value="示例应用">
+                            <input type="text" id="modal-app-emoji" placeholder="图标Emoji" value="🆕">
+                            <div class="modal-buttons">
+                                <button class="btn btn-secondary" id="modal-cancel">取消</button>
+                                <button class="btn btn-primary" id="modal-confirm">确认安装</button>
+                            </div>
+                        </div>
+                    `;
+      document.body.appendChild(overlay);
+      const closeModal = () => {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => {
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, 200);
+      };
+      overlay.querySelector('#modal-cancel').addEventListener('click', closeModal);
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal();
+      });
+      overlay.querySelector('#modal-confirm').addEventListener('click', () => {
+        const name = overlay.querySelector('#modal-app-name').value.trim() || '新应用';
+        const emoji = overlay.querySelector('#modal-app-emoji').value.trim() || '🆕';
+        const newApp = {
+          id: 'app-' + Date.now(),
+          name: name,
+          emoji: emoji,
+          version: '1.0.0',
+          size: (Math.random() * 30 + 5).toFixed(1) + ' MB',
+          installDate: new Date().toISOString().split('T')[0],
+          isSystem: false,
+          category: 'custom',
+        };
+        installedApps.push(newApp);
+        renderDesktopIcons();
+        renderDock();
+        // 刷新应用管理窗口
+        refreshAppManagerWindow();
+        showToast(`✅ "${name}" 安装成功！`);
+        closeModal();
+      });
+    }
+
+    function uninstallApp(appId) {
+      const app = getAppById(appId);
+      if (!app || app.isSystem) return;
+      const idx = installedApps.findIndex(a => a.id === appId);
+      if (idx >= 0) {
+        const appName = installedApps[idx].name;
+        installedApps.splice(idx, 1);
+        // 关闭该应用的窗口
+        const winEl = document.getElementById(`window-${appId}`);
+        if (winEl) {
+          winEl.style.transition = 'all 0.2s ease';
+          winEl.style.opacity = '0';
+          winEl.style.transform = 'scale(0.85)';
+          setTimeout(() => {
+            if (winEl.parentNode) winEl.parentNode.removeChild(winEl);
+          }, 200);
+          delete windowStates[appId];
+          runningAppIds.delete(appId);
+          if (activeWindowId === appId) activeWindowId = null;
+        }
+        renderDesktopIcons();
+        renderDock();
+        updateDockRunningIndicators();
+        refreshAppManagerWindow();
+        showToast(`🗑️ "${appName}" 已卸载`);
+      }
+    }
+
+    function refreshAppManagerWindow() {
+      const winEl = document.getElementById('window-app-manager');
+      if (!winEl || winEl.classList.contains('hidden')) return;
+      const contentEl = winEl.querySelector('.window-content');
+      if (contentEl) {
+        contentEl.innerHTML = buildAppManagerContent();
+        // 重新绑定按钮事件
+        setTimeout(() => {
+          const installBtn = winEl.querySelector('#btn-install-app');
+          if (installBtn) installBtn.addEventListener('click', () => simulateInstallApp());
+          const uninstallBtns = winEl.querySelectorAll('.btn-uninstall');
+          uninstallBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              uninstallApp(btn.dataset.appId);
+            });
+          });
+        }, 50);
+      }
+    }
+
+    // ==================== 全局事件 ====================
+    // 点击桌面空白处取消选中
+    desktopEl.addEventListener('click', (e) => {
+      if (e.target === desktopEl || e.target.closest('.wallpaper')) {
+        desktopEl.querySelectorAll('.desktop-icon.selected').forEach(el => el.classList
+            .remove('selected'));
+        contextMenuEl.style.display = 'none';
+      }
+    });
+    // 右键菜单
+    desktopEl.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      // 如果点击的是桌面图标
+      const iconEl = e.target.closest('.desktop-icon');
+      if (iconEl) {
+        desktopEl.querySelectorAll('.desktop-icon.selected').forEach(el => el.classList.remove(
+            'selected'));
+        iconEl.classList.add('selected');
+      }
+      contextMenuEl.style.display = 'block';
+      contextMenuEl.style.left = e.clientX + 'px';
+      contextMenuEl.style.top = e.clientY + 'px';
+      // 确保菜单不超出屏幕
+      const menuRect = contextMenuEl.getBoundingClientRect();
+      if (menuRect.right > window.innerWidth - 10) {
+        contextMenuEl.style.left = (e.clientX - menuRect.width) + 'px';
+      }
+      if (menuRect.bottom > window.innerHeight - 70) {
+        contextMenuEl.style.top = (e.clientY - menuRect.height) + 'px';
+      }
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.context-menu')) {
+        contextMenuEl.style.display = 'none';
+      }
+    });
+    // 右键菜单项事件
+    contextMenuEl.querySelectorAll('.context-menu-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.dataset.action;
+        if (action === 'refresh') {
+          renderDesktopIcons();
+          renderDock();
+          showToast('🔄 桌面已刷新');
+        } else if (action === 'new-folder') {
+          showToast('📁 文件夹创建功能（原型演示）');
+        } else if (action === 'new-file') {
+          showToast('📄 文件创建功能（原型演示）');
+        } else if (action === 'change-wallpaper') {
+          showToast('🖼️ 壁纸更换功能（原型演示）');
+        }
+        contextMenuEl.style.display = 'none';
+      });
+    });
+    // 文件选择器模拟
+    hiddenFileInput.addEventListener('change', () => {
+      if (hiddenFileInput.files.length > 0) {
+        const fileName = hiddenFileInput.files[0].name;
+        simulateInstallApp();
+        showToast(`📥 已选择文件: ${fileName}`);
+      }
+      hiddenFileInput.value = '';
+    });
+    // 键盘快捷键
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        contextMenuEl.style.display = 'none';
+        desktopEl.querySelectorAll('.desktop-icon.selected').forEach(el => el.classList.remove(
+            'selected'));
+      }
+    });
+    // 窗口大小变化时更新最大化窗口
+    window.addEventListener('resize', () => {
+      document.querySelectorAll('.window.maximized').forEach(winEl => {
+        winEl.style.top = '32px';
+        winEl.style.left = '0';
+        winEl.style.width = '100vw';
+        winEl.style.height = (window.innerHeight - 32 - 62) + 'px';
+      });
+    });
+
+    // ==================== 初始化 ====================
+    function init() {
+      renderDesktopIcons();
+      renderDock();
+      console.log('🚀 应用平台桌面原型已就绪');
+      console.log('  - 双击桌面图标打开应用');
+      console.log('  - 右键桌面打开上下文菜单');
+      console.log('  - 拖拽窗口标题栏移动窗口');
+      console.log('  - 红黄绿按钮：关闭/最小化/最大化');
+      console.log('  - 底部Dock显示运行中的应用');
+      console.log('  - 应用管理支持安装/卸载');
+      document.getElementById('music-player').addEventListener('click', () => {
+        console.log('音乐播放器内容区被点击');
+        try {
+          if (sysInvoke == null) {
+            console.log('sysInvoke 不存在');
+          }
+          if (sysFunc?.LaunchApp == null) {
+            console.log('sysFunc.LaunchApp 不存在');
+          }
+          sysInvoke(sysFunc.LaunchApp, '2')
+              .then(res => {
+                console.log('成功', res);
+              })
+              .catch(res => {
+                console.log('失败', res);
+              });
+        } catch (err) {
+          console.error('sysInvoke 调用异常:', err);
+        }
+      });
+      document.getElementById('chart-app').addEventListener('click', () => {
+        console.log('图表应用内容区被点击');
+        try {
+          if (sysInvoke == null) {
+            console.log('sysInvoke 不存在');
+          }
+          if (sysFunc?.ExitApp == null) {
+            console.log('sysFunc.ExitApp 不存在');
+          }
+          sysInvoke(sysFunc.ExitApp)
+              .then(res => {
+                console.log('成功', res);
+              })
+              .catch(res => {
+                console.log('失败', res);
+              });
+        } catch (err) {
+          console.error('sysInvoke 调用异常:', err);
+        }
+      });
+    }
+
+    /*sysSub(0, () => {
+      console.log("退出程序")
+      sysInvoke(sysFunc.ExitApp)
+    });
+    sysSub(0, () => {
+      console.log("退出程序")
+    });*/
+    init();
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>文件 · 瑶光台</title>
+<link rel="stylesheet" href="1.css"><link rel="stylesheet" href="runtime.css">
+<script type="module" src="src/main.js"></script>
+<main>
+  <header><div><small>瑶光台工作区</small><h1>文件</h1></div><button id="reveal">在资源管理器中打开</button></header>
+  <nav aria-label="当前目录"><button id="up" disabled>↑ 上一级</button><span id="location">工作区</span><button id="refresh">刷新</button><button id="mkdir">新建文件夹</button></nav>
+  <p id="status" role="status">正在读取工作区…</p>
+  <ul id="items" aria-label="文件列表"></ul>
+</main>
+<dialog id="edit"><form id="name-form">
+  <h2 id="action-title"></h2><label for="name">名称</label><input id="name" maxlength="120" required>
+  <p id="edit-error" role="alert"></p><div class="actions"><button type="button" id="cancel">取消</button><button id="submit">确认</button></div>
+</form></dialog>
+</html>

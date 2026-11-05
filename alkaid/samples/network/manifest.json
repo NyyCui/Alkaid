@@ -1,0 +1,40 @@
+{
+  "manifestVersion": 3,
+  "appId": "com.example.network",
+  "name": "航标 · 请求台",
+  "version": "1.0.0",
+  "runtime": {
+    "apiMajor": 1,
+    "minVersion": "2.0.0"
+  },
+  "entry": "index.html",
+  "instanceMode": "single",
+  "permissions": [
+    "net.request"
+  ],
+  "networkEndpoints": [
+    {
+      "id": "httpbin",
+      "baseUrl": "https://httpbin.org/",
+      "methods": [
+        "GET",
+        "HEAD",
+        "POST"
+      ],
+      "allowPrivateNetwork": false
+    }
+  ],
+  "type": "app",
+  "publisher": {
+    "name": "瑶光台示例"
+  },
+  "routing": "hash",
+  "dependencies": [],
+  "window": {
+    "width": 1180,
+    "height": 780,
+    "minWidth": 760,
+    "minHeight": 560,
+    "resizable": true
+  }
+}

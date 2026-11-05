@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>瑶光台</title>
+  <link href="./1.css" rel="stylesheet"><link href="./runtime.css" rel="stylesheet"><link href="./experience.css" rel="stylesheet"><link rel="icon" href="./assets/alkaid-256.png">
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <div class="wallpaper" aria-hidden="true"><img id="wallpaper-image" alt="" hidden></div>
+  <header class="menubar">
+    <div class="menubar-left"><details class="system-menu"><summary aria-label="瑶光台菜单"><img src="./assets/alkaid-256.png" alt=""><strong>瑶光台</strong></summary><div class="menu-sheet"><button data-open="about">关于瑶光台</button><button data-open="settings">系统设置</button><hr><button id="menu-exit">退出瑶光台</button></div></details><button class="menubar-item" data-open="apps">应用</button><button class="menubar-item" data-open="tools">工具</button><button class="menubar-item" data-open="settings">设置</button></div>
+    <div class="menubar-right"><button id="task-entry" class="menubar-item" data-open="tasks" title="查看任务">任务 <span id="task-count"></span></button><span id="connection" role="status">正在连接…</span><time id="clock" class="menubar-time"></time><div class="host-controls"><button id="host-close" title="关闭窗口" aria-label="关闭窗口">×</button><button id="host-minimize" title="最小化" aria-label="最小化">—</button><button id="host-maximize" title="最大化或还原" aria-label="最大化或还原">□</button></div></div>
+  </header>
+  <main class="desktop" aria-label="桌面">
+    <button class="desktop-icon" data-open="apps" aria-label="打开应用管理"><span class="desktop-icon-emoji desktop-library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.8"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1.8"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1.8"/><rect x="14" y="14" width="6.5" height="6.5" rx="1.8"/></svg></span><span class="desktop-icon-label">应用管理</span></button>
+
+    <div id="desktop-apps"></div>
+  </main>
+  <section id="app-workspace" aria-labelledby="workspace-title" hidden>
+    <header id="workspace-handle">
+      <h2 id="workspace-title"></h2>
+      <div class="host-controls">
+        <button id="workspace-close" title="关闭应用" aria-label="关闭应用">×</button>
+        <button id="workspace-minimize" title="最小化应用" aria-label="最小化应用">—</button>
+        <button id="workspace-maximize" title="最大化或还原应用" aria-label="最大化或还原应用">□</button>
+      </div>
+    </header>
+    <div id="workspace-content"></div>
+    <div id="workspace-resize" aria-hidden="true"></div>
+  </section>
+  <div class="desktop-caption" aria-hidden="true"><span>瑶光台</span><p>应用各司其职，桌面从容有序。</p></div>
+  <section id="panel-apps" class="window focused workspace-panel" aria-labelledby="apps-title" hidden>
+    <header class="panel-titlebar"><div class="panel-controls"><button class="panel-close" data-close="apps" aria-label="关闭应用管理"></button></div><h1 id="apps-title">应用管理</h1><button id="install-package" class="text-button">＋ 安装应用</button><button id="refresh" class="text-button">刷新</button></header>
+    <div class="panel-content"><div class="section-heading"><div><span class="eyebrow">我的工作空间</span><h2>我的应用</h2></div><span id="app-count" class="count-label">—</span></div>
+      <div class="app-toolbar"><input id="app-search" type="search" placeholder="搜索应用" aria-label="搜索应用"><fieldset id="app-filter" class="segmented-control"><legend class="visually-hidden">按运行状态筛选</legend><label><input type="radio" name="app-filter" value="all" checked><span>全部</span></label><label><input type="radio" name="app-filter" value="running"><span>运行中</span></label><label><input type="radio" name="app-filter" value="stopped"><span>未运行</span></label></fieldset></div><p id="search-empty" class="empty-state" hidden>没有匹配的应用，试试其他名称。</p><div id="apps-loading" class="empty-state" role="status">正在读取应用…</div><div id="apps-error" class="notice error" role="alert" hidden></div><div id="apps-list" class="app-list"></div>
+      <div id="apps-empty" class="empty-state" hidden><span class="empty-symbol">＋</span><h3>还没有添加应用</h3><p>这里将展示安装到瑶光台的应用。</p></div>
+      <div id="package-task" class="notice" role="status">选择 YPKG 应用包，校验后确认安装。</div>
+
+    </div>
+  </section>
+  <section id="panel-plugins" class="window workspace-panel" aria-labelledby="plugins-title" hidden>
+    <header class="panel-titlebar"><div class="panel-controls"><button class="panel-close" data-close="plugins" aria-label="关闭插件管理"></button></div><h1 id="plugins-title">插件管理</h1><button id="install-plugin" class="text-button">＋ 安装插件</button></header>
+    <div class="panel-content">
+      <div class="section-heading"><div><span class="eyebrow">瑶光台 · 扩展能力</span><h2>已安装插件</h2></div><span id="plugin-count" class="count-label">—</span></div>
+      <div id="plugin-list" class="app-list"></div>
+      <div id="plugin-status" class="notice" role="status">正在读取插件…</div>
+    </div>
+  </section>
+  <section id="panel-tools" class="window workspace-panel" aria-labelledby="tools-title" hidden>
+    <header class="panel-titlebar"><div class="panel-controls"><button class="panel-close" data-close="tools" aria-label="关闭工具"></button></div><h1 id="tools-title">工具</h1></header>
+    <div class="panel-content"><span class="eyebrow">创作与管理</span><h2>让应用来到你的桌面</h2><div class="tool-grid"><button id="open-pack" class="tool-card"><strong>打包工作台 <span>↗</span></strong><p>把前端构建目录制作成可安装的 YPKG。</p><small>选择项目 · 确认信息 · 生成安装包</small></button><button data-open="plugins" class="tool-card"><strong>插件管理</strong><p>查看扩展能力、版本及使用情况。</p></button><button id="open-audit" class="tool-card"><strong>开发诊断</strong><p>检查最近操作与失败原因。</p></button></div></div>
+  </section>
+  <section id="panel-tasks" class="window workspace-panel" aria-labelledby="tasks-title" hidden>
+    <header class="panel-titlebar"><div class="panel-controls"><button class="panel-close" data-close="tasks" aria-label="关闭任务"></button></div><h1 id="tasks-title">任务记录</h1></header><div class="panel-content"><p class="detail-hint">安装与打包的进度、结果都在这里。</p><div id="task-list" aria-live="polite"></div></div>
+  </section>
+  <section id="panel-about" class="window workspace-panel about-panel" aria-labelledby="about-title" hidden>
+    <header class="panel-titlebar"><div class="panel-controls"><button class="panel-close" data-close="about" aria-label="关闭关于窗口"></button></div><h1 id="about-title">关于瑶光台</h1></header>
+    <div class="panel-content"><img class="about-logo" src="./assets/alkaid-256.png" alt="瑶光台"><h2>瑶光台</h2><p class="about-copy">前端构建体验，瑶光台提供系统能力。</p><dl class="runtime-details"><dt>运行状态</dt><dd id="runtime-status">正在连接</dd><dt>平台版本</dt><dd id="runtime-version">—</dd><dt>桌面标识</dt><dd id="runtime-app">—</dd></dl><button id="reconnect" class="btn btn-secondary">重新连接</button></div>
+  </section>
+  <section id="panel-settings" class="window workspace-panel" aria-labelledby="settings-title" hidden>
+    <header class="panel-titlebar"><div class="panel-controls"><button class="panel-close" data-close="settings" aria-label="关闭设置"></button></div><h1 id="settings-title">设置</h1></header>
+    <div class="panel-content settings-content">
+      <div class="settings-intro"><span class="eyebrow">个性化</span><h2>外观与时钟</h2><p>调整配色和顶部时钟的显示方式。</p></div>
+      <form id="desktop-settings">
+        <fieldset id="settings-fields" disabled>
+          <legend class="visually-hidden">桌面与时钟设置</legend>
+          <div class="settings-section-heading"><h3>桌面色调</h3><span>三种柔和配色</span></div>
+          <div class="settings-palettes">
+            <label class="palette-option"><input type="radio" name="palette" value="cream" checked><span class="palette-preview cream" aria-hidden="true"><i class="preview-menubar"></i><i class="preview-window"></i><i class="preview-dock"></i></span><span class="palette-caption"><span><strong>暖白</strong><small>温暖 · 自然</small></span><span class="palette-check" aria-hidden="true">✓</span></span></label>
+            <label class="palette-option"><input type="radio" name="palette" value="forest" ><span class="palette-preview forest" aria-hidden="true"><i class="preview-menubar"></i><i class="preview-window"></i><i class="preview-dock"></i></span><span class="palette-caption"><span><strong>松绿</strong><small>安静 · 清新</small></span><span class="palette-check" aria-hidden="true">✓</span></span></label>
+            <label class="palette-option"><input type="radio" name="palette" value="mist" ><span class="palette-preview mist" aria-hidden="true"><i class="preview-menubar"></i><i class="preview-window"></i><i class="preview-dock"></i></span><span class="palette-caption"><span><strong>海雾</strong><small>轻盈 · 通透</small></span><span class="palette-check" aria-hidden="true">✓</span></span></label>
+          </div>
+          <div class="setting-row wallpaper-setting"><div class="setting-label"><strong>自定义壁纸</strong><small id="wallpaper-status" role="status">使用内置配色</small></div><div class="settings-actions"><button id="choose-wallpaper" type="button" class="btn btn-secondary">选择图片</button><button id="clear-wallpaper" type="button" class="text-button" hidden>移除</button></div><input id="wallpaper-file" type="file" accept="image/png,image/jpeg,image/webp" hidden></div>
+          <div class="settings-section-heading clock-heading"><h3>时间显示</h3><span>用于桌面顶部时钟</span></div>
+          <div class="settings-rows">
+            <div class="setting-row"><div class="setting-label"><strong id="clock-format-label">时钟格式</strong><small>选择你习惯的时间表示方式</small></div><div id="clock-format" class="segmented-control" role="group" aria-labelledby="clock-format-label"><label><input type="radio" name="clockFormat" value="24" checked><span>24 小时</span></label><label><input type="radio" name="clockFormat" value="12"><span>12 小时</span></label></div></div>
+            <div class="setting-row"><div class="setting-label"><label for="clock-seconds">显示秒数</label><small>让时间精确到每一秒</small></div><label class="switch-control"><input id="clock-seconds" type="checkbox" role="switch" aria-label="显示秒数"><span class="switch-track" aria-hidden="true"></span></label></div>
+          </div>
+          <div class="settings-section-heading clock-heading"><h3>窗口</h3></div>
+          <div class="settings-rows"><div class="setting-row">
+            <div class="setting-label"><strong id="close-action-label">点击关闭按钮时</strong><small>设置会立即保存</small></div>
+            <div id="close-action-options" class="segmented-control" role="group" aria-labelledby="close-action-label">
+              <label><input type="radio" name="closeAction" value="ask" checked disabled><span>询问</span></label>
+              <label><input type="radio" name="closeAction" value="minimize" disabled><span>最小化</span></label>
+              <label><input type="radio" name="closeAction" value="exit" disabled><span>退出</span></label>
+            </div>
+          </div></div>
+        </fieldset>
+        <footer class="settings-footer"><p id="settings-status" role="status">正在读取设置…</p><div class="settings-actions"><button id="reset-settings" type="button" class="text-button" disabled>恢复默认</button><button id="save-settings" type="submit" class="btn btn-primary" disabled>保存设置</button></div></footer>
+      </form>
+    </div>
+  </section>
+  <nav class="dock-container" aria-label="桌面工具栏">
+    <button class="dock-item" data-open="apps" data-tooltip="应用管理" aria-label="应用管理"><span class="dock-glyph glyph-apps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.8"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1.8"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1.8"/><rect x="14" y="14" width="6.5" height="6.5" rx="1.8"/></svg></span></button>
+    <button class="dock-item" data-open="tools" data-tooltip="工具" aria-label="工具"><span class="dock-glyph glyph-tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><rect x="3" y="7" width="18" height="13" rx="3"/><path d="M3 12a26 26 0 0 0 18 0M10 12v3h4v-3"/></svg></span></button>
+    <button class="dock-item" data-open="settings" data-tooltip="设置" aria-label="设置"><span class="dock-glyph glyph-settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v4m0 6v8M18 3v8m0 6v4"/><rect x="3" y="7" width="6" height="6" rx="2"/><rect x="15" y="11" width="6" height="6" rx="2"/></svg></span></button>
+    <span id="running-apps"></span><span class="dock-separator" aria-hidden="true"></span><button id="exit" class="dock-item" data-tooltip="退出瑶光台" aria-label="退出瑶光台" disabled><span class="dock-glyph glyph-exit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v9M7 5.6a8 8 0 1 0 10 0"/></svg></span></button>
+  </nav>
+  <dialog id="pack-dialog" class="pack-studio" aria-labelledby="pack-title">
+    <header class="pack-header"><div><span class="eyebrow">瑶光台开发工具 / YPKG V3</span><h2 id="pack-title">打包工作台</h2></div><button id="close-pack" class="text-button" aria-label="关闭打包工作台">关闭</button></header>
+    <div class="pack-body">
+      <aside class="pack-guide">
+        <h3>制作你的应用</h3>
+        <ol class="pack-steps"><li data-pack-step="info">应用信息与发布者</li><li data-pack-step="source">选择构建目录</li><li data-pack-step="output">确认保存位置</li><li data-pack-step="ready">生成安装包</li></ol>
+        <p>后续更新请使用同一个发布者。</p>
+      </aside>
+      <div class="pack-editor"><div id="pack-form-content">
+        <section aria-label="本地发布者">
+          <p id="local-publisher-status" role="status">正在读取发布者…</p>
+          <form id="local-publisher-form" hidden>
+            <label for="local-publisher-name">发布者名称</label>
+            <input id="local-publisher-name" maxlength="40" placeholder="例如 我的工作室" required>
+            <button class="btn btn-secondary" type="submit">创建发布者</button>
+          </form>
+          <details id="publisher-backup">
+            <summary>发布者备份与恢复</summary>
+            <form id="publisher-backup-form">
+              <p id="publisher-backup-hint" class="detail-hint"></p>
+              <label for="publisher-backup-password">备份口令</label>
+              <input id="publisher-backup-password" type="password" autocomplete="off" minlength="12" maxlength="64" required>
+              <button id="submit-publisher-backup" type="submit" class="btn btn-secondary">保存加密备份</button>
+            </form>
+          </details>
+        </section>
+        <div id="pack-app-fields" class="pack-fields">
+          <div class="pack-field"><label for="pack-app-name">应用名称</label><input id="pack-app-name" placeholder="我的应用" maxlength="40" required><small class="field-hint">显示在桌面与应用列表中的名称。</small></div>
+          <div class="pack-field"><label for="pack-app-id">应用标识</label><input id="pack-app-id" placeholder="com.example.myapp" required><small class="field-hint">更新时保持不变，例如 com.example.myapp。</small></div>
+          <div class="pack-field"><label for="pack-app-version">版本</label><input id="pack-app-version" value="1.0.0" required><small class="field-hint">使用三段版本号，例如 1.0.0。</small></div>
+          <div class="pack-field"><label for="pack-app-entry">入口页面</label><input id="pack-app-entry" value="index.html" required><small class="field-hint">相对于构建目录的 HTML 入口。</small></div>
+          <div class="pack-field"><label for="pack-app-icon">应用图标（可选）</label><div class="pack-icon-upload"><img id="pack-icon-preview" alt="图标预览" hidden><input id="pack-app-icon" type="file" accept="image/png,image/jpeg,image/webp"><button id="clear-pack-icon" type="button" class="text-button" hidden>移除</button></div><small id="pack-icon-status" role="status">建议用方形 PNG、JPEG 或 WebP，最大 8 MiB。</small></div>
+          <fieldset><legend>应用权限</legend>
+            <label><input name="pack-permission" type="checkbox" value="storage.kv"> 保存应用数据</label>
+            <label><input name="pack-permission" type="checkbox" value="files.private"> 读写私有文件</label>
+            <label><input name="pack-permission" type="checkbox" value="files.userSelected.read"> 打开用户选定的文件</label>
+            <label><input name="pack-permission" type="checkbox" value="files.userSelected.write"> 保存到用户选定的文件</label>
+          </fieldset>
+        </div>
+        <details id="pack-advanced">
+          <summary>高级打包</summary>
+          <div class="pack-templates"><button id="pack-app-template" class="text-button">应用模板</button><button id="pack-plugin-template" class="text-button">插件模板</button></div>
+          <label for="pack-manifest">项目清单 <span>manifest.json</span></label><textarea id="pack-manifest" rows="10" spellcheck="false"></textarea>
+          <label><input id="pack-manual-key" type="checkbox"> 选择已有私钥文件</label>
+        </details>
+        </div>
+        <section id="pack-review" hidden><span class="eyebrow" id="pack-review-step">项目已选择</span><h3 id="pack-review-title">选择安装包保存位置</h3><p id="pack-review-description">接下来选择生成的 .ypkg 文件保存在哪里。</p><dl class="package-details"><dt>构建目录</dt><dd id="pack-source-name"></dd><dt>应用信息</dt><dd id="pack-review-app"></dd><dt>保存位置</dt><dd id="pack-output-path">尚未选择</dd></dl><div id="pack-result-actions" class="dialog-actions" hidden><button id="pack-reveal" class="btn btn-secondary">打开所在文件夹</button><button id="pack-install" class="btn btn-primary">安装此包</button></div></section>
+      </div>
+    </div>
+    <footer class="pack-footer"><p id="pack-status" role="status" aria-live="polite">准备就绪</p><div class="dialog-actions"><button id="pack-back" class="btn btn-secondary" hidden>返回编辑</button><button id="submit-pack" class="btn btn-primary">下一步 · 选择构建目录</button></div></footer>
+  </dialog>
+  <dialog id="exit-dialog"><h2>退出瑶光台？</h2><p>桌面和所有正在运行的应用窗口都将关闭。</p><div class="dialog-actions"><button id="cancel-exit" class="btn btn-secondary">取消</button><button id="confirm-exit" class="btn btn-primary">退出</button></div></dialog>
+  <dialog id="host-close-dialog" aria-labelledby="host-close-title">
+    <h2 id="host-close-title">关闭瑶光台窗口</h2>
+    <p>最小化后，应用继续运行。退出会关闭桌面和正在运行的应用。</p>
+    <label class="remember-close"><input id="remember-close" type="checkbox">记住选择</label>
+    <div class="dialog-actions">
+      <button id="cancel-host-close" class="btn btn-secondary" autofocus>取消</button>
+      <button id="minimize-on-close" class="btn btn-secondary">最小化到任务栏</button>
+      <button id="exit-on-close" class="btn btn-primary">退出</button>
+    </div>
+  </dialog>
+  <div id="toast" class="runtime-toast" role="status" hidden></div>
+  <dialog id="install-dialog" class="package-dialog" aria-labelledby="install-title"><span id="install-eyebrow" class="eyebrow">应用安装</span><h2 id="install-title">确认应用信息</h2><dl class="package-details"><dt id="package-kind">应用</dt><dd id="package-name"></dd><dt>版本</dt><dd id="package-version"></dd><dt>发布者指纹</dt><dd id="package-publisher" class="fingerprint"></dd><dt id="package-capability-label">访问权限</dt><dd id="package-permissions">仅查询自身运行信息与可用能力</dd></dl><p id="package-trust-note"></p><label id="trust-row" class="trust-row"><input id="trust-publisher" type="checkbox">我已核对来源，信任此发布者</label><p id="package-confirm-error" class="dialog-error" role="alert" hidden></p><div class="dialog-actions"><button id="cancel-install" class="btn btn-secondary">取消</button><button id="confirm-install" class="btn btn-primary" disabled>确认安装</button></div></dialog>
+  <dialog id="app-detail-dialog" class="package-dialog app-detail" aria-labelledby="app-detail-title">
+    <span class="eyebrow">应用管理 / 应用详情</span><h2 id="app-detail-title"></h2>
+    <dl class="package-details">
+      <dt>应用标识</dt><dd id="app-detail-id"></dd>
+      <dt>版本与状态</dt><dd id="app-detail-state"></dd>
+      <dt>发布者</dt><dd id="app-detail-publisher"></dd>
+      <dt>发布者指纹</dt><dd id="app-detail-fingerprint" class="fingerprint"></dd>
+    </dl>
+    <section class="detail-section">
+      <div class="detail-section-head"><h3>能力授权</h3><button id="edit-app-permissions" class="text-button" hidden>调整授权</button></div>
+      <p id="app-permissions-hint" class="detail-hint" hidden></p>
+      <ul id="app-detail-permissions"></ul>
+      <p id="app-permissions-error" class="notice error" role="alert" hidden></p>
+      <div id="app-permissions-actions" class="dialog-actions" hidden><button id="cancel-app-permissions" class="btn btn-secondary">取消调整</button><button id="save-app-permissions" class="btn btn-primary">保存授权</button></div>
+    </section>
+    <section class="detail-section"><h3>插件绑定</h3><ul id="app-detail-plugins"></ul></section>
+    <section id="app-data-section" class="detail-section" hidden>
+      <div class="detail-section-head"><h3>应用数据</h3><button id="clear-app-data" class="text-button">清理数据</button></div>
+      <p class="detail-hint">删除应用的私有键值、私有文件和应用配置。浏览器缓存独立管理。</p>
+      <div class="detail-section-head"><h3>浏览器数据</h3><button id="clear-browser-data" class="text-button">清理浏览器数据</button></div>
+      <p class="detail-hint">清理缓存、Cookie 和网页存储，重启瑶光台后完成。</p>
+      <p id="browser-cleanup-pending" class="detail-hint" role="status" hidden>等待清理。请退出并重开瑶光台，再启动此应用。</p>
+      <p id="app-data-busy" class="detail-hint" hidden>请先关闭应用，再清理数据。</p>
+      <p id="app-data-error" class="notice error" role="alert" hidden></p>
+    </section>
+    <p id="app-detail-error" class="notice error" hidden></p>
+    <div class="dialog-actions"><button id="open-app-audit" class="btn btn-secondary">操作记录</button><button id="close-app-detail" class="btn btn-secondary">关闭</button></div>
+  </dialog>
+  <dialog id="audit-dialog" class="package-dialog" aria-labelledby="audit-title">
+    <span class="eyebrow">瑶光台 / 开发诊断</span><h2 id="audit-title">最近操作</h2>
+    <p id="audit-status" role="status"></p><ol id="audit-records" class="audit-records"></ol>
+    <div class="dialog-actions"><button id="close-audit" class="btn btn-secondary">关闭</button></div>
+  </dialog>
+  <dialog id="clear-data-dialog" class="package-dialog" aria-labelledby="clear-data-title" aria-describedby="clear-data-description">
+    <h2 id="clear-data-title"></h2>
+    <p id="clear-data-description">此操作将永久删除该应用的私有键值、私有文件和应用配置。</p>
+    <div class="dialog-actions"><button id="cancel-clear-data" class="btn btn-secondary" autofocus>取消</button><button id="confirm-clear-data" class="btn btn-danger">永久删除</button></div>
+  </dialog>
+  <dialog id="manage-dialog" aria-labelledby="manage-title">
+    <h2 id="manage-title"></h2><p id="manage-description"></p>
+    <div id="uninstall-data-option" hidden>
+      <label class="trust-row"><input id="uninstall-clear-data" type="checkbox">同时永久删除应用数据</label>
+      <p class="detail-hint">删除私有键值、私有文件和应用配置。浏览器数据独立管理。</p>
+    </div>
+    <div class="dialog-actions"><button id="cancel-manage" class="btn btn-secondary">取消</button><button id="confirm-manage" class="btn btn-primary">确认</button></div>
+  </dialog>
+<dialog id="confirm-dialog" class="package-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title"></h2><p id="confirm-description"></p><div class="dialog-actions"><button id="confirm-no" class="btn btn-secondary" autofocus>取消</button><button id="confirm-yes" class="btn btn-primary">继续</button></div></dialog>
+<div id="app-context-menu" class="menu-sheet" hidden></div>
+</body>
+</html>

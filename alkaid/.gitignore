@@ -1,0 +1,19 @@
+# 构建输出目录
+/build
+
+# CEF 库文件（保留 DownloadCEF.cmake）
+third_party/cef/*
+
+# IDE 配置
+.idea/
+*.iml
+.vs
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 前端开发依赖
+node_modules/
+__pycache__/
+*.private.pem

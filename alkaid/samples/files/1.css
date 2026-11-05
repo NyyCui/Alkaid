@@ -1,0 +1,19 @@
+:root { color-scheme: light; color: #293c33; background: #f5f7f0; font: 14px "Microsoft YaHei UI", sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { padding: 24px clamp(16px, 5vw, 52px); }
+header, nav, .actions { display: flex; align-items: center; gap: 8px; }
+header { justify-content: space-between; border-bottom: 1px solid #cbd9cd; padding-bottom: 15px; }
+h1 { font-size: 30px; margin: 3px 0 0; letter-spacing: .08em; }
+header small { color: #52745c; letter-spacing: .12em; }
+nav { margin-top: 15px; flex-wrap: wrap; }
+#location { flex: 1; min-width: 130px; overflow-wrap: anywhere; }
+button, input { font: inherit; }
+button { border: 1px solid #afc2b2; background: #fcfdf8; color: inherit; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+button:hover:not(:disabled) { background: #e1eee1; }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible, input:focus-visible { outline: 2px solid #41664c; outline-offset: 2px; }
+ul { list-style: none; padding: 0; }
+li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px; padding: 8px; border-bottom: 1px solid #dbe4d8; }
+li span, li button:first-child { min-width: 0; overflow-wrap: anywhere; text-align: left; }
+li small { color: #5b6d62; }

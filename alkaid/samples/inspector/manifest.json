@@ -1,0 +1,26 @@
+{
+  "manifestVersion": 3,
+  "appId": "com.example.inspector",
+  "name": "独立应用示例",
+  "version": "1.0.0",
+  "runtime": {
+    "apiMajor": 1,
+    "minVersion": "2.0.0"
+  },
+  "entry": "index.html",
+  "instanceMode": "single",
+  "permissions": [],
+  "type": "app",
+  "publisher": {
+    "name": "瑶光台示例"
+  },
+  "routing": "hash",
+  "dependencies": [],
+  "window": {
+    "width": 1180,
+    "height": 780,
+    "minWidth": 760,
+    "minHeight": 560,
+    "resizable": true
+  }
+}

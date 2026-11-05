@@ -1,0 +1,17 @@
+{
+  "manifestVersion": 3,
+  "type": "app",
+  "appId": "com.alkaid.device-console",
+  "name": "接点 · 设备控制",
+  "version": "1.0.0",
+  "publisher": { "name": "瑶光台" },
+  "runtime": { "apiMajor": 1, "minVersion": "2.0.0" },
+  "entry": "index.html",
+  "routing": "hash",
+  "instanceMode": "single",
+  "window": { "width": 1040, "height": 700, "minWidth": 660, "minHeight": 540, "resizable": true },
+  "permissions": ["plugin.com.alkaid.serial"],
+  "dependencies": [
+    { "pluginId": "com.alkaid.serial", "minVersion": "1.0.0", "maxVersionExclusive": "2.0.0", "required": true }
+  ]
+}

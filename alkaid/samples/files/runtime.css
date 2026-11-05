@@ -1,0 +1,7 @@
+dialog { width: min(400px, calc(100% - 32px)); padding: 22px; border: 1px solid #afc2b2; border-radius: 12px; background: #f8faf2; color: inherit; }
+dialog::backdrop { background: #263d3560; }
+form { display: grid; gap: 9px; }
+h2, #edit-error { margin: 0; }
+#edit-error { color: #9a3e38; }
+input { border: 1px solid #afc2b2; border-radius: 6px; padding: 8px; }
+.actions { justify-content: flex-end; }

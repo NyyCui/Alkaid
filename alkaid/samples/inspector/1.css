@@ -1,0 +1,5 @@
+/* 示例应用的基础样式，所有资源随应用交付。 */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif; }
+button { font: inherit; cursor: pointer; }
+[hidden] { display: none !important; }

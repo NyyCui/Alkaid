@@ -1,0 +1,423 @@
+// 由 scripts/generate-contracts.py 生成，请修改契约源文件。
+export const contract = {
+  "protocolVersion": 1,
+  "maxPayloadBytes": 1048576,
+  "maxPendingPerSession": 128,
+  "methods": [
+    {
+      "name": "runtime.getInfo",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "runtime.getCapabilities",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.list",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.launch",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.focus",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.close",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "plugins.list",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "plugins.prepareInstall",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "plugins.uninstall",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.publisherBackup",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.localPublisher",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.preparePack",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.prepareInstall",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.confirmInstall",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.cancelInstall",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.getTask",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.listAudit",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.listTasks",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.setPermissions",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.clearData",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.clearBrowserData",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.uninstall",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.rollback",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "runtime.exit",
+      "capability": "platform.exit",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "plugin.call",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 30000
+    },
+    {
+      "name": "events.subscribe",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "events.unsubscribe",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "config.app.get",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "config.app.set",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "config.app.remove",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "config.app.batch",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "config.platform.get",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "config.platform.set",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "config.platform.remove",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "config.platform.batch",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "storage.get",
+      "capability": "storage.kv",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "storage.set",
+      "capability": "storage.kv",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "storage.remove",
+      "capability": "storage.kv",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "storage.batch",
+      "capability": "storage.kv",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.readPrivateText",
+      "capability": "files.private",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.writePrivateText",
+      "capability": "files.private",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.removePrivate",
+      "capability": "files.private",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "dialog.openFile",
+      "capability": "files.userSelected.read",
+      "managerOnly": false,
+      "timeoutMs": 300000
+    },
+    {
+      "name": "dialog.saveFile",
+      "capability": "files.userSelected.write",
+      "managerOnly": false,
+      "timeoutMs": 300000
+    },
+    {
+      "name": "files.readText",
+      "capability": "files.userSelected.read",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.writeText",
+      "capability": "files.userSelected.write",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.close",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.beginRead",
+      "capability": "files.userSelected.read",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.beginWrite",
+      "capability": "files.userSelected.write",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.beginPrivateRead",
+      "capability": "files.private",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.beginPrivateWrite",
+      "capability": "files.private",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.readNext",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.appendChunk",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.commitWrite",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "files.abortStream",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "window.setCloseHandler",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "window.resolveClose",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "net.getEndpoints",
+      "capability": "net.request",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "net.open",
+      "capability": "net.request",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "net.readNext",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "net.close",
+      "capability": "",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "window.minimize",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "workspace.files",
+      "capability": "workspace.files",
+      "managerOnly": false,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.layoutWorkspace",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "window.toggleMaximize",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.advancePack",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.cancelPack",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.revealPack",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    },
+    {
+      "name": "apps.installPacked",
+      "capability": "apps.manage",
+      "managerOnly": true,
+      "timeoutMs": 15000
+    }
+  ]
+} as const;
+export type MethodName = typeof contract.methods[number]["name"];
